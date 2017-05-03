@@ -46,6 +46,27 @@ class Node(db.Model):
 
     @property
     def serialize(self):
+        """ Returns a json serializable dict.
+        
+        Notes:
+            What's cool about this is that the children's key recursively keeps
+            calling itself on all of the children of each new node. Causing the
+            output to look like which is pretty powerful.
+            
+            - Root
+                - level_1  
+                    - level_2
+                        - level_3
+                - level_1  
+                    - level_2
+                        - level_3
+                - level_1  
+                    - level_2
+                        - level_3
+        
+        Returns:
+            dict: Key value pairs of essential Node data.
+        """
         return {
             'id':        self.id,
             'name':      self.name,
