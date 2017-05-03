@@ -8,6 +8,9 @@ from app import db
 # Models
 from app.models import Node
 
+# Utils
+from app.exceptions import ObjectDoesntExist
+
 # Create new flask blueprint
 node_app = Blueprint('node', __name__)
 
@@ -16,6 +19,11 @@ node_app = Blueprint('node', __name__)
 @cross_origin()
 def node_list():
     """ Lists or creates nodes.
+    
+    Notes:
+        Before creating we make sure there isn't already a node with the same name.
+        We also check to see if a name key exists on the request to prevent breaking
+        the app.
     
     Returns:
         (list | object): List of all nodes or a newly created node. 
@@ -52,15 +60,68 @@ def node_list():
         return jsonify([node.serialize for node in nodes]), 200
 
 
-@node_app.route('/<id>', methods=['GET', 'POST'])
+@node_app.route('/<pk>/', methods=['GET', 'PUT', 'DELETE'])
 @cross_origin()
-def node_detail(id):
+def node_detail(pk):
     """ Get, Update & Delete specific Node data.
     
     Args:
-        id (int): Value of node id.
+        pk (int): Value of node id.
 
     Returns:
-
+        (Object): Value of specific Node. 
     """
-    pass
+
+    def get_object():
+        """ Helper function for getting model.
+         
+        Notes:
+            Since this is a closure I don't need to pass id param to it.
+        """
+        instance = Node.query.get(int(pk))
+
+        if not instance:
+            raise ObjectDoesntExist(f"Node with id {pk} doesn't exist")
+        else:
+            return instance
+
+    # Attempt to get the object based id before even doing any processing.
+    try:
+        node = get_object()
+
+    except ObjectDoesntExist as error:
+        return jsonify(error.message), 400
+
+    else:
+        # ------------------------------------------
+        #   GET
+        # ------------------------------------------
+
+        if request.method == 'GET':
+            return jsonify(node.serialize), 200
+
+        # ------------------------------------------
+        #   PUT
+        # ------------------------------------------
+
+        if request.method == 'PUT':
+
+            try:
+                name = request.json['name']
+
+            except KeyError:
+                return jsonify('Please send a name to call the new node'), 400
+
+            else:
+                node.name = name
+                db.session.commit()
+                return jsonify(node.serialize), 200
+
+        # ------------------------------------------
+        #   DELETE
+        # ------------------------------------------
+
+        if request.method == 'DELETE':
+            node.delete()
+            db.session.commit()
+            return jsonify('Successfully Deleted.'), 204
