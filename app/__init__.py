@@ -13,3 +13,9 @@ app.config.from_object(app_settings)
 
 # DB Connection
 db = SQLAlchemy(app)
+
+from app.nodes.views import node_app
+
+app.register_blueprint(node_app, url_prefix='/api/nodes')
+
+
