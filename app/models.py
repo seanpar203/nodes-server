@@ -2,7 +2,7 @@ from app import db
 
 
 class Node(db.Model):
-    """ Account class that stores unique emails. """
+    """ Node class that stores names. """
 
     __tablename__ = 'node'
 
@@ -12,8 +12,8 @@ class Node(db.Model):
 
     parent_id = db.Column(db.Integer, db.ForeignKey('node.id'), index=True)
     parent = db.relationship(
-        lambda: Node,
-        remote_side=id,
+        'Node',
+        remote_side='Node.id',
         backref='sub_nodes',
     )
 
@@ -22,11 +22,14 @@ class Node(db.Model):
     # ------------------------------------------
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String(255), unique=True)
 
-    # Built-in Override Methods.
+    # ------------------------------------------
+    #   Methods
+    # ------------------------------------------
+
     def __init__(self, name):
-        """ Creates new Account.
+        """ Creates new Node.
 
         Args:
             name (str): A unique Node name.
@@ -40,6 +43,15 @@ class Node(db.Model):
             str: representation of Node Object.
         """
         return '<Node {}>'.format(self.id)
+
+    @property
+    def serialize(self):
+        return {
+            'id':        self.id,
+            'name':      self.name,
+            'parent_id': self.parent_id,
+            'children':  [node.serialize for node in self.sub_nodes]
+        }
 
     @classmethod
     def get_or_create(cls, name):
