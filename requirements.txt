@@ -2,12 +2,16 @@ alembic==0.8.7
 appdirs==1.4.3
 click==6.6
 coverage==4.2
+enum-compat==0.0.2
+eventlet==0.21.0
 Flask==0.11.1
 Flask-Cors==3.0.1
 Flask-Migrate==2.0.0
 Flask-Script==2.0.5
+Flask-SocketIO==2.8.6
 Flask-SQLAlchemy==2.1
 Flask-Testing==0.5.0
+greenlet==0.4.12
 gunicorn==19.6.0
 itsdangerous==0.24
 Jinja2==2.8

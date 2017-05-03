@@ -1,10 +1,13 @@
 import os
 
+import socketio
+
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 # Config
+sio = socketio.Server()
 app = Flask(__name__)
 
 CORS(app)

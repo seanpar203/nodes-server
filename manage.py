@@ -6,6 +6,7 @@ import os
 import unittest
 import coverage
 
+from flask_socketio import SocketIO
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 
@@ -21,7 +22,7 @@ COV = coverage.coverage(
 
 COV.start()
 
-from app import app, db
+from app import app, db, sio
 from app.models import Node
 
 # Create Instances.
@@ -74,4 +75,5 @@ def drop_db():
 
 
 if __name__ == '__main__':
-    manager.run()
+    socketio = SocketIO(app)
+    socketio.run(app)

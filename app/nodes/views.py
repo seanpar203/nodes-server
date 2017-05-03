@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 
 # DB connector.
-from app import db
+from app import db, sio
 
 # Models
 from app.models import Node
@@ -110,7 +110,7 @@ def node_detail(pk):
                 name = request.json['name']
 
             except KeyError:
-                return jsonify('Please send a name to call the new node'), 400
+                return jsonify('Please send a name to rename the node'), 400
 
             else:
                 node.name = name
@@ -125,3 +125,8 @@ def node_detail(pk):
             node.delete()
             db.session.commit()
             return jsonify('Successfully Deleted.'), 204
+
+
+@sio.on('connect')
+def connect(sid, environ):
+    print('connect', sid)
