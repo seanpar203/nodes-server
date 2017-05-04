@@ -7,7 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Config
 app = Flask(__name__)
-socketio = SocketIO(app)
+CORS(app)
+socketio = SocketIO(app, engineio_logger=True)
 
 CORS(app)
 app_settings = os.getenv('APP_SETTINGS', 'app.config.DevConfig')

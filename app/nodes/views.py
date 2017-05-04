@@ -1,6 +1,6 @@
 # Flask
+from flask_socketio import emit, send
 from flask import Blueprint, jsonify, request
-from flask_cors import cross_origin
 
 # DB connector.
 from app import db, socketio
@@ -16,7 +16,6 @@ node_app = Blueprint('node', __name__)
 
 
 @node_app.route('/', methods=['GET', 'POST'])
-@cross_origin()
 def node_list():
     """ Lists or creates nodes.
     
@@ -61,7 +60,6 @@ def node_list():
 
 
 @node_app.route('/<pk>/', methods=['GET', 'PUT', 'DELETE'])
-@cross_origin()
 def node_detail(pk):
     """ Get, Update & Delete specific Node data.
     
@@ -132,6 +130,8 @@ def handle_connect():
     print('connected')
 
 
-@socketio.on('message')
-def handle_message(msg):
-    print('Message', msg)
+@socketio.on('update:node')
+def handle_update():
+    nodes = Node.query.filter_by(name='Root')
+    json = jsonify([node.serialize for node in nodes])
+    emit('update', json, broadcast=True)
