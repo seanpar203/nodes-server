@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 
 # DB connector.
-from app import db, sio
+from app import db, socketio
 
 # Models
 from app.models import Node
@@ -127,6 +127,11 @@ def node_detail(pk):
             return jsonify('Successfully Deleted.'), 204
 
 
-@sio.on('connect')
-def connect(sid, environ):
-    print('connect', sid)
+@socketio.on('connect')
+def handle_connect():
+    print('connected')
+
+
+@socketio.on('message')
+def handle_message(msg):
+    print('Message', msg)

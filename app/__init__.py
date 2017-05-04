@@ -1,14 +1,13 @@
 import os
 
-import socketio
-
 from flask import Flask
 from flask_cors import CORS
+from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
 # Config
-sio = socketio.Server()
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 CORS(app)
 app_settings = os.getenv('APP_SETTINGS', 'app.config.DevConfig')
@@ -20,5 +19,3 @@ db = SQLAlchemy(app)
 from app.nodes.views import node_app
 
 app.register_blueprint(node_app, url_prefix='/api/nodes')
-
-

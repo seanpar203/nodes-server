@@ -30,7 +30,7 @@ class DevConfig(Config):
     """ Development settings class, inherits from Config. """
     DEBUG = True
     DEVELOPMENT = True
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
 
 
 class TestConfig(Config):
