@@ -1,5 +1,6 @@
 # Flask
 import json
+from random import randint
 from flask_socketio import emit, send
 from flask import Blueprint, jsonify, request
 
@@ -10,6 +11,7 @@ from app import db, socketio
 from app.models import Node
 
 # Utils
+from app.helper_functions import get_object
 from app.exceptions import ObjectDoesntExist
 
 # Create new flask blueprint
@@ -56,13 +58,13 @@ def node_list():
                 return jsonify(node.serialize), 201
 
     else:
-        nodes = Node.query.filter_by(name='Root')
-        return jsonify([node.serialize for node in nodes]), 200
+        root_node = Node.query.filter_by(name='Root')
+        return jsonify([node.serialize for node in root_node]), 200
 
 
 @node_app.route('/<pk>/', methods=['GET', 'PUT', 'DELETE'])
 def node_detail(pk):
-    """ Get, Update & Delete specific Node data.
+    """ Gets, Updates, Deletes a specific node.
     
     Args:
         pk (int): Value of node id.
@@ -70,26 +72,12 @@ def node_detail(pk):
     Returns:
         (Object): Value of specific Node. 
     """
-
-    def get_object():
-        """ Helper function for getting model.
-         
-        Notes:
-            Since this is a closure I don't need to pass id param to it.
-        """
-        instance = Node.query.get(int(pk))
-
-        if not instance:
-            raise ObjectDoesntExist(f"Node with id {pk} doesn't exist")
-        else:
-            return instance
-
     # Attempt to get the object based id before even doing any processing.
     try:
-        node = get_object()
+        node = get_object(Node, pk)
 
     except ObjectDoesntExist as error:
-        return jsonify(error.message), 400
+        return jsonify(error.message), 404
 
     else:
         # ------------------------------------------
@@ -126,6 +114,56 @@ def node_detail(pk):
             return jsonify('Successfully Deleted.'), 204
 
 
+@node_app.route('/<pk>/nodes/', methods=['POST'])
+def create_sub_nodes(pk):
+    """ Creates sub nodes for a specific node.
+    
+    Args:
+        pk (int): Value of node id. 
+
+    Returns:
+        (list): List of dictionaries of new sub nodes.
+    """
+    # Make sure the node exists.
+    try:
+        parent = get_object(Node, pk)
+
+    except ObjectDoesntExist as error:
+        return jsonify(error.message), 404
+
+    else:
+
+        # Make sure they sent sub node names.
+        try:
+            count = request.json['count']
+
+        except KeyError:
+            return jsonify('Missing amount of sub nodes to generate.'), 400
+
+        else:
+
+            if count:
+
+                # Delete previous sub nodes.
+                Node.query.filter_by(parent=parent).delete()
+                db.session.commit()
+
+                # Create new nodes.
+                for i in range(count):
+                    node_name = str(randint(parent.min_num, parent.max_num))
+                    node = Node(name=node_name)
+                    node.can_have_children = False
+                    node.parent = parent
+                    db.session.add(node)
+                db.session.commit()
+
+                # Return new node tree.
+                return jsonify('New nodes Created.'), 200
+
+            else:
+                return jsonify('Sub node names are empty.'), 400
+
+
 @socketio.on('connect')
 def handle_connect():
     print('connected')
@@ -133,6 +171,6 @@ def handle_connect():
 
 @socketio.on('update:nodes')
 def handle_update():
-    nodes = Node.query.filter_by(name='Root')
-    data = json.dumps([node.serialize for node in nodes])
+    root_node = Node.query.filter_by(name='Root')
+    data = json.dumps([node.serialize for node in root_node])
     emit('update', data, broadcast=True)

@@ -1,3 +1,7 @@
+# Modules
+from random import randint
+
+# db
 from app import db
 
 
@@ -10,11 +14,16 @@ class Node(db.Model):
     #   Relationships
     # ------------------------------------------
 
-    parent_id = db.Column(db.Integer, db.ForeignKey('node.id'), index=True)
+    parent_id = db.Column(
+        db.Integer,
+        db.ForeignKey('node.id', ondelete='CASCADE'),
+        index=True,
+    )
     parent = db.relationship(
         'Node',
         remote_side='Node.id',
         backref='sub_nodes',
+        lazy='joined'
     )
 
     # ------------------------------------------
@@ -24,6 +33,8 @@ class Node(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True)
     can_have_children = db.Column(db.Boolean, default=True)
+    min_num = db.Column(db.SmallInteger, nullable=True)
+    max_num = db.Column(db.SmallInteger, nullable=True)
 
     # ------------------------------------------
     #   Methods
@@ -35,7 +46,10 @@ class Node(db.Model):
         Args:
             name (str): A unique Node name.
         """
+        max_rand = 970
         self.name = name
+        self.min_num = randint(1, max_rand)
+        self.max_num = randint(self.min_num, max_rand + 30)
 
     def __str__(self):
         """ Returns Object string representation.
@@ -71,6 +85,8 @@ class Node(db.Model):
         base = {
             'id':                self.id,
             'name':              self.name,
+            'min_num':           self.min_num,
+            'max_num':           self.max_num,
             'parent_id':         self.parent_id,
             'can_have_children': self.can_have_children
 
