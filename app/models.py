@@ -23,6 +23,7 @@ class Node(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True)
+    can_have_children = db.Column(db.Boolean, default=True)
 
     # ------------------------------------------
     #   Methods
@@ -67,12 +68,17 @@ class Node(db.Model):
         Returns:
             dict: Key value pairs of essential Node data.
         """
-        return {
-            'id':        self.id,
-            'name':      self.name,
-            'parent_id': self.parent_id,
-            'children':  [node.serialize for node in self.sub_nodes]
+        base = {
+            'id':                self.id,
+            'name':              self.name,
+            'parent_id':         self.parent_id,
+            'can_have_children': self.can_have_children
+
         }
+        if self.can_have_children:
+            return {**base, 'children': [c.serialize for c in self.sub_nodes]}
+        else:
+            return base
 
     @classmethod
     def get_or_create(cls, name):

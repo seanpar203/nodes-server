@@ -1,4 +1,5 @@
 # Flask
+import json
 from flask_socketio import emit, send
 from flask import Blueprint, jsonify, request
 
@@ -130,8 +131,8 @@ def handle_connect():
     print('connected')
 
 
-@socketio.on('update:node')
+@socketio.on('update:nodes')
 def handle_update():
     nodes = Node.query.filter_by(name='Root')
-    json = jsonify([node.serialize for node in nodes])
-    emit('update', json, broadcast=True)
+    data = json.dumps([node.serialize for node in nodes])
+    emit('update', data, broadcast=True)
