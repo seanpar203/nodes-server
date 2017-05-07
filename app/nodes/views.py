@@ -129,7 +129,7 @@ def node_detail(pk):
         # ------------------------------------------
 
         if request.method == 'DELETE':
-            node.delete()
+            db.session.delete(node)
             db.session.commit()
             return jsonify('Successfully Deleted.'), 204
 
@@ -161,6 +161,10 @@ def create_sub_nodes(pk):
             # Delete previous sub nodes.
             Node.query.filter_by(parent=parent).delete()
             db.session.commit()
+
+            if 1 <= count >= 15:
+                msg = 'Number of children to generate should be between 1-15'
+                return jsonify(msg), 400
 
             # Create new nodes.
             for i in range(count):
