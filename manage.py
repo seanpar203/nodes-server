@@ -21,7 +21,7 @@ COV = coverage.coverage(
 
 COV.start()
 
-from app import app, db, socketio
+from app import app, db
 from app.models import Node
 
 # Create Instances.
@@ -30,11 +30,6 @@ manager = Manager(app)
 
 # Add method.
 manager.add_command('db', MigrateCommand)
-
-
-@manager.command
-def run():
-    socketio.run(app)
 
 
 @manager.command
@@ -79,4 +74,4 @@ def drop_db():
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    manager.run()
