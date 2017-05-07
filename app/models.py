@@ -31,7 +31,7 @@ class Node(db.Model):
     # ------------------------------------------
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), unique=True)
+    name = db.Column(db.String(255))
     can_have_children = db.Column(db.Boolean, default=True)
     min_num = db.Column(db.SmallInteger, nullable=True)
     max_num = db.Column(db.SmallInteger, nullable=True)
