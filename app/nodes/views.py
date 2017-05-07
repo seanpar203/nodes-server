@@ -163,7 +163,7 @@ def create_sub_nodes(pk):
             Node.query.filter_by(parent=parent).delete()
             db.session.commit()
 
-            if 1 <= count >= 15:
+            if count < 1 or count > 15:
                 msg = 'Number of children to generate should be between 1-15'
                 return jsonify(msg), 400
 
