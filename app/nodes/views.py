@@ -30,15 +30,24 @@ def node_list():
     Returns:
         (list | object): List of all nodes or a newly created node. 
     """
+    # ------------------------------------------
+    #   GET
+    # ------------------------------------------
+
+    if request.method == 'GET':
+        root_node = Node.query.filter_by(name='Root')
+        return jsonify([node.serialize for node in root_node]), 200
+
+    # ------------------------------------------
+    #   POST
+    # ------------------------------------------
+
     if request.method == 'POST':
 
-        try:
-            name = request.json['name']
+        name = request.json.get('name')
 
-        except KeyError:
-            return jsonify('Please send a name to call the new node'), 400
+        if name and isinstance(name, str):
 
-        else:
             node = Node.query.filter_by(name=name).first()
 
             if node:
@@ -57,9 +66,9 @@ def node_list():
                 db.session.commit()
                 return jsonify(node.serialize), 201
 
-    else:
-        root_node = Node.query.filter_by(name='Root')
-        return jsonify([node.serialize for node in root_node]), 200
+        else:
+            msg = 'Must send name as alpha characters to name the new node'
+            return jsonify(msg), 400
 
 
 @node_app.route('/<pk>/', methods=['GET', 'PUT', 'DELETE'])
@@ -93,16 +102,27 @@ def node_detail(pk):
 
         if request.method == 'PUT':
 
-            try:
-                name = request.json['name']
+            # Fields
+            name = request.json.get('name')
+            min_num = request.json.get('min_num')
+            max_num = request.json.get('max_num')
 
-            except KeyError:
-                return jsonify('Please send a name to rename the node'), 400
-
-            else:
+            if isinstance(name, str) and node.name != name:
                 node.name = name
-                db.session.commit()
-                return jsonify(node.serialize), 200
+
+            if isinstance(min_num, int) and isinstance(max_num, int):
+
+                if min_num < max_num:
+                    node.min_num = min_num
+                    node.max_num = max_num
+
+                else:
+                    return jsonify('min_num must be less tha max_num'), 400
+            else:
+                return jsonify('min_num and max_num must be integers'), 400
+
+            db.session.commit()
+            return jsonify(node.serialize), 200
 
         # ------------------------------------------
         #   DELETE
@@ -133,35 +153,30 @@ def create_sub_nodes(pk):
 
     else:
 
-        # Make sure they sent sub node names.
-        try:
-            count = request.json['count']
+        count = request.json.get('count')
 
-        except KeyError:
-            return jsonify('Missing amount of sub nodes to generate.'), 400
+        # Make sure they sent amount to generate.
+        if count and isinstance(count, int):
+
+            # Delete previous sub nodes.
+            Node.query.filter_by(parent=parent).delete()
+            db.session.commit()
+
+            # Create new nodes.
+            for i in range(count):
+                node_name = str(randint(parent.min_num, parent.max_num))
+                node = Node(name=node_name)
+                node.can_have_children = False
+                node.parent = parent
+                db.session.add(node)
+            db.session.commit()
+
+            # Return new node tree.
+            return jsonify('New nodes Created.'), 200
 
         else:
-
-            if count:
-
-                # Delete previous sub nodes.
-                Node.query.filter_by(parent=parent).delete()
-                db.session.commit()
-
-                # Create new nodes.
-                for i in range(count):
-                    node_name = str(randint(parent.min_num, parent.max_num))
-                    node = Node(name=node_name)
-                    node.can_have_children = False
-                    node.parent = parent
-                    db.session.add(node)
-                db.session.commit()
-
-                # Return new node tree.
-                return jsonify('New nodes Created.'), 200
-
-            else:
-                return jsonify('Sub node names are empty.'), 400
+            msg = 'Must send count, the amount of children to generate'
+            return jsonify(msg), 400
 
 
 @socketio.on('connect')
