@@ -1,1 +1,1 @@
-web: python manage.py runserver
+web: gunicorn --worker-class eventlet -w 1 app:app
