@@ -33,6 +33,11 @@ manager.add_command('db', MigrateCommand)
 
 
 @manager.command
+def run():
+    socketio.run(app)
+
+
+@manager.command
 def test():
     """Runs the unit tests without test coverage."""
     tests = unittest.TestLoader().discover('app/', pattern='test*.py')
@@ -74,4 +79,4 @@ def drop_db():
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    manager.run()
