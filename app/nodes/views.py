@@ -46,7 +46,7 @@ def node_list():
 
         name = request.json.get('name')
 
-        if name and isinstance(name, str):
+        if name and isinstance(name, str) and len(name) >= 5:
 
             node = Node.query.filter_by(name=name).first()
 
@@ -67,8 +67,7 @@ def node_list():
                 return jsonify(node.serialize), 201
 
         else:
-            msg = 'Must send name as alpha characters to name the new node'
-            return jsonify(msg), 400
+            return jsonify('Name must be minimum of 5 Alpha characters'), 400
 
 
 @node_app.route('/<pk>/', methods=['GET', 'PUT', 'DELETE'])
@@ -79,7 +78,7 @@ def node_detail(pk):
         pk (int): Value of node id.
 
     Returns:
-        (Object): Value of specific Node. 
+        (object): Value of specific Node. 
     """
     # Attempt to get the object based id before even doing any processing.
     try:
@@ -107,7 +106,9 @@ def node_detail(pk):
             min_num = request.json.get('min_num')
             max_num = request.json.get('max_num')
 
-            if isinstance(name, str) and node.name != name:
+            # Sanity checks on incoming data.
+            # Make sure data is of appropriate type.
+            if isinstance(name, str) and node.name != name and len(name) >= 5:
                 node.name = name
 
             if isinstance(min_num, int) and isinstance(max_num, int):
@@ -139,10 +140,10 @@ def create_sub_nodes(pk):
     """ Creates sub nodes for a specific node.
     
     Args:
-        pk (int): Value of node id. 
+        pk (int): Value of node id.
 
     Returns:
-        (list): List of dictionaries of new sub nodes.
+        (str): Text stating the new nodes were created.
     """
     # Make sure the node exists.
     try:
@@ -179,8 +180,7 @@ def create_sub_nodes(pk):
             return jsonify('New nodes Created.'), 200
 
         else:
-            msg = 'Must send count, the amount of children to generate'
-            return jsonify(msg), 400
+            return jsonify('Must send amount of children to generate'), 400
 
 
 @socketio.on('connect')
