@@ -130,9 +130,12 @@ def node_detail(pk):
         # ------------------------------------------
 
         if request.method == 'DELETE':
-            db.session.delete(node)
-            db.session.commit()
-            return jsonify('Successfully Deleted.'), 204
+            if node.name != 'Root':
+                db.session.delete(node)
+                db.session.commit()
+                return jsonify('Successfully Deleted.'), 204
+            else:
+                return jsonify("Can't delete the Root node."), 400
 
 
 @node_app.route('/<pk>/nodes/', methods=['POST'])
