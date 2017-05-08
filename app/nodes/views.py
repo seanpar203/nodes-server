@@ -111,31 +111,41 @@ def node_detail(pk):
             if isinstance(name, str) and node.name != name and len(name) >= 5:
                 node.name = name
 
+            # Checks if min and max are integers.
             if isinstance(min_num, int) and isinstance(max_num, int):
 
-                if 0 <= min_num <= 970 and 1 <= max_num <= 1000 and min_num < max_num:
-                    node.min_num = min_num
-                    node.max_num = max_num
+                # Checks if numbers are within bounds.
+                if 0 <= min_num <= 970 and 1 <= max_num <= 1000:
+
+                    # Checks if min is less than max.
+                    if min_num < max_num:
+                        node.min_num = min_num
+                        node.max_num = max_num
+
+                    else:
+                        return jsonify('min_num must be less tha max_num'), 400
 
                 else:
-                    return jsonify('min_num must be less tha max_num'), 400
+                    return jsonify(
+                        'min_num and or max_num are out of bounds.'), 400
+
             else:
                 return jsonify('min_num and max_num must be integers'), 400
 
             db.session.commit()
             return jsonify(node.serialize), 200
 
-        # ------------------------------------------
-        #   DELETE
-        # ------------------------------------------
+    # ------------------------------------------
+    #   DELETE
+    # ------------------------------------------
 
-        if request.method == 'DELETE':
-            if node.name != 'Root':
-                db.session.delete(node)
-                db.session.commit()
-                return jsonify('Successfully Deleted.'), 204
-            else:
-                return jsonify("Can't delete the Root node."), 400
+    if request.method == 'DELETE':
+        if node.name != 'Root':
+            db.session.delete(node)
+            db.session.commit()
+            return jsonify('Successfully Deleted.'), 204
+        else:
+            return jsonify("Can't delete the Root node."), 400
 
 
 @node_app.route('/<pk>/nodes/', methods=['POST'])
