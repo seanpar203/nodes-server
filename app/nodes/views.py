@@ -113,7 +113,7 @@ def node_detail(pk):
 
             if isinstance(min_num, int) and isinstance(max_num, int):
 
-                if min_num < max_num:
+                if 0 <= min_num <= 970 and 1 <= max_num <= 1000 and min_num < max_num:
                     node.min_num = min_num
                     node.max_num = max_num
 
